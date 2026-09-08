@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets — never commit
+.env
+*.env
+!.env.example
+
+# LLM response cache (demo determinism — regenerated locally)
+.llm_cache/
+
+# Generated outputs (compliance exports land here on day −2)
+exports/
+
+# Local experiments (prompt prototyping, notebooks, scratch)
+scratch/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# NOTE: uv.lock is deliberately NOT ignored — commit it.
+# It pins exact dependency versions and is what keeps all members aligned.

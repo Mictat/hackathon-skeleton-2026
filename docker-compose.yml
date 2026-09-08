@@ -1,0 +1,23 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16   # pgvector-ready now, free; used on search day
+    environment:
+      POSTGRES_USER: TEMPNAME
+      POSTGRES_PASSWORD: TEMPNAME_dev
+      POSTGRES_DB: TEMPNAME
+    ports:
+      - "5433:5432"                 # 5433 to dodge any local Postgres
+    volumes:
+      - TEMPNAME_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U TEMPNAME"]
+      interval: 2s
+      retries: 15
+
+  adminer:                           # governance folks browse data without CLI
+    image: adminer:latest
+    ports:
+      - "8081:8080"
+
+volumes:
+  TEMPNAME_pgdata:
