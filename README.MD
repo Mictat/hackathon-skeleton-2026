@@ -166,8 +166,6 @@ activated venv). Works identically on Windows, macOS, and Linux.
 | `tasks.py dev` | Run app with hot reload (`:8000`) |
 | `tasks.py test` | Smoke tests (needs DB up) |
 | `tasks.py fmt` | ruff format |
-| `tasks.py requirements` | Regenerate `requirements.txt` from lockfile |
-| `tasks.py install-pip` | Install via pip instead of uv |
 
 ## Build plan & status
 
