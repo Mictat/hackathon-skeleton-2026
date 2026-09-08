@@ -14,7 +14,7 @@ services:
       interval: 2s
       retries: 15
 
-  adminer:                           # governance folks browse data without CLI
+  adminer:                           # easy browsing of data without CLI
     image: adminer:latest
     ports:
       - "8081:8080"

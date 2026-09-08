@@ -88,7 +88,6 @@ TEMPNAME/
 ├── docker-compose.yml      # Postgres (pgvector-ready) :5433, Adminer :8081
 ├── pyproject.toml          # dependency source of truth
 ├── uv.lock                 # exact resolved versions — COMMITTED, keeps us aligned
-├── requirements.txt        # generated pip mirror (`make requirements`)
 └── tasks.py                # cross-platform task runner (replaces Makefile)
 ```
 
@@ -112,7 +111,7 @@ The "why" behind the schema — read once, save arguments later:
 4. **Credentials never enter the database.** `data_sources.connection_ref`
    holds a reference (host/db/path), not secrets. Secrets live in `.env`
    and are never committed.
-5. **`create_all` never alters existing tables.** Change a model ⇒ `make init`
+5. **`create_all` never alters existing tables.** Change a model ⇒ `us run tasks.py init`
    (drop + recreate + reseed). Consequence: *if it's not in a seed script,
    it doesn't exist.* All demo state must be reproducible from
    `reset_db + seed + one scan run`.
@@ -133,9 +132,9 @@ The "why" behind the schema — read once, save arguments later:
 
 - **`app/models/` is owned by backend dev 1.** Everyone else PRs; they merge.
   One owner stops the schema forking.
-- **Changed/added a dependency?** Update `pyproject.toml` → `uv sync` →
-  `make requirements` → commit all three files together.
-- **Changed a model?** Run `make init`, and update `scripts/seed_dev.py` if
+- **Changed/added a dependency?** Update `pyproject.toml` → `uv sync` → commit 
+   all files together.
+- **Changed a model?** Run `uv run tasks.py init`, and update `scripts/seed_dev.py` if
   needed so the demo stays reproducible.
 - **Agent output shapes are contracts.** They're specified in
   `docs/agent_contracts.md`. Change the doc first, then the code.

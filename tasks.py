@@ -58,12 +58,12 @@ def cmd_fmt():
         sh("uv", "run", "ruff", "format", ".")
 
 
-def cmd_requirements():
-    sh("uv", "export", "--all-groups", "--no-hashes", "-o", "requirements.txt")
+# def cmd_requirements():
+#     sh("uv", "export", "--all-groups", "--no-hashes", "-o", "requirements.txt")
 
 
-def cmd_install_pip():
-    py("-m", "pip", "install", "-r", "requirements.txt")
+# def cmd_install_pip():
+#     py("-m", "pip", "install", "-r", "requirements.txt")
 
 
 COMMANDS = {
@@ -74,8 +74,8 @@ COMMANDS = {
     "dev": (cmd_dev, "run app with hot reload on http://localhost:8000"),
     "test": (cmd_test, "run smoke tests (needs db-up first)"),
     "fmt": (cmd_fmt, "ruff format"),
-    "requirements": (cmd_requirements, "regenerate requirements.txt from uv.lock"),
-    "install-pip": (cmd_install_pip, "pip install from requirements.txt"),
+    # "requirements": (cmd_requirements, "regenerate requirements.txt from uv.lock"),
+    # "install-pip": (cmd_install_pip, "pip install from requirements.txt"),
 }
 
 
