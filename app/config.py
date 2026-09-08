@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="ATLAS_", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="TEMPNAME_", extra="ignore")
 
     database_url: str = "postgresql+psycopg://TEMPNAME:TEMPNAME_dev@localhost:5433/TEMPNAME"
     app_name: str = "TEMPNAME — AI Data Discovery"

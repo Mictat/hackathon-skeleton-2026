@@ -70,7 +70,7 @@ or `pip install uv`.
 TEMPNAME/
 ├── app/
 │   ├── main.py             # FastAPI app factory; create_all runs on startup
-│   ├── config.py           # pydantic-settings — all ATLAS_* env vars
+│   ├── config.py           # pydantic-settings — all TEMPNAME_* env vars
 │   ├── db.py               # engine, session factory, get_db dependency
 │   ├── api/                # routes (health, home page); grows each day
 │   ├── models/             # SQLAlchemy models — 12 tables, the whole catalog schema
@@ -143,15 +143,15 @@ The "why" behind the schema — read once, save arguments later:
 
 ## Environment variables
 
-All prefixed `ATLAS_` (see `app/config.py`):
+All prefixed `TEMPNAME_` (see `app/config.py`):
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `ATLAS_DATABASE_URL` | Postgres DSN | `postgresql+psycopg://TEMPNAME:TEMPNAME_dev@localhost:5433/TEMPNAME` |
-| `ATLAS_LLM_PROVIDER` | LLM provider id (abstraction layer) | `openai` |
-| `ATLAS_LLM_MODEL` | Model id | `gpt-4o-mini` |
-| `ATLAS_LLM_API_KEY` | API key (from `.env`, never committed) | — |
-| `ATLAS_LLM_CACHE_DIR` | Response cache directory (gitignored) | `.llm_cache` |
+| `TEMPNAME_DATABASE_URL` | Postgres DSN | `postgresql+psycopg://TEMPNAME:TEMPNAME_dev@localhost:5433/TEMPNAME` |
+| `TEMPNAME_LLM_PROVIDER` | LLM provider id (abstraction layer) | `openai` |
+| `TEMPNAME_LLM_MODEL` | Model id | `gpt-4o-mini` |
+| `TEMPNAME_LLM_API_KEY` | API key (from `.env`, never committed) | — |
+| `TEMPNAME_LLM_CACHE_DIR` | Response cache directory (gitignored) | `.llm_cache` |
 
 ## Task commands
 
