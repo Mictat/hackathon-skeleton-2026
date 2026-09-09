@@ -49,6 +49,11 @@
                                 seen
                             </span>
                             {% else %}<span class="opacity-40">never</span>{% endif %}
+                            {% if item.last.status == 'failed' and item.last.error %}
+                            <div class="text-xs text-error mt-1 max-w-[240px] truncate" title="{{ item.last.error }}">
+                                {{item.last.error}}
+                            </div>
+                            {% endif %}
                         </td>
                         <td>
                             <button class="btn btn-primary btn-sm" hx-post="/pages/sources/{{ item.s.id }}/scan"

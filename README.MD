@@ -171,7 +171,7 @@ activated venv). Works identically on Windows, macOS, and Linux.
 | Day | Focus | Status |
 |---|---|---|
 | −7 | Foundation: schema, app skeleton, seed, contracts doc | ✅ done |
-| −6 | Connector framework + SQL & file connectors; synthetic bank-data generator | ⬜ |
+| −6 | Connector framework + SQL & file connectors; synthetic bank-data generator | ✅ done |
 | −5 | LLM abstraction + cache; classification / ownership / description agents; confidence scoring | ⬜ |
 | −4 | Triage + review workflow, threshold slider, audit events | ⬜ |
 | −3 | UI: run dashboard, review queue, catalog, asset detail w/ lineage | ⬜ |
