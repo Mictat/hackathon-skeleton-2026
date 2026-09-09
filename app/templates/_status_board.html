@@ -56,10 +56,12 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if item.s.status != 'mock' %}
                             <button class="btn btn-primary btn-sm" hx-post="/pages/sources/{{ item.s.id }}/scan"
                                 hx-target="#status-board" hx-swap="outerHTML" hx-disabled-elt="this">
                                 Scan
                             </button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

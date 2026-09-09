@@ -14,6 +14,8 @@
 #   rows:      fake row count generated locally (never leaves the env).
 # =====================================================================
 
+# GTO* == "Ground-Truth Only". As above, these fields will only be written to ground truth file. Used to evaluate agents.
+
 people:
   - {full_name: Sarah Chen, email: s.chen@bank.example, title: Head of Retail Data, team: Retail Data Platform, department: Retail Banking}
   - {full_name: Marcus Webb, email: m.webb@bank.example, title: Risk Data Lead, team: Risk Data Management, department: Risk Management}
@@ -25,6 +27,7 @@ people:
   - {full_name: Aisha Bello, email: a.bello@bank.example, title: Payments Data Owner, team: Wholesale Payments, department: Wholesale Banking}
   - {full_name: James Park, email: j.park@bank.example, title: Head of Data Engineering, team: Data Platform, department: IT & Data}
 
+# Define 2 Data Sources (places we read assets from). We define data to be generated in these sources in the remainder of this file.
 sources:
   - name: Retail Core DB (PostgreSQL)
     type: postgres
@@ -35,19 +38,20 @@ sources:
     environment: analytics
     connection: {root: data/file_share}
 
+# Define tables in the fake bank DB (Retail Core DB (PostgreSQL)).
 database:
-  schemas:
+  schemas: # <-- schemas in postgres are like, collections of tables (I think)
     - schema: retail_banking
       tables:
         - name: customer_master
-          domain: retail
+          domain: retail # <-- GTO*
           owner: s.chen@bank.example
-          sensitivity: confidential
-          comment: "Golden source for retail customer identity and relationships."
-          rows: 40
+          sensitivity: confidential # <--GTO*
+          comment: "Golden source for retail customer identity and relationships." # <-- table comment
+          rows: 40 # <-- number of rows to generate
           columns:
             - {name: customer_id, type: varchar(20), key: true, comment: "Primary customer identifier"}
-            - {name: full_name, type: varchar(120), pii: person_name}
+            - {name: full_name, type: varchar(120), pii: person_name} # <-- pii is GTO*
             - {name: email_addr, type: varchar(200), pii: email}
             - {name: phone_no, type: varchar(30), pii: phone}
             - {name: date_of_birth, type: date, pii: date_of_birth}
@@ -118,7 +122,7 @@ database:
           domain: retail
           owner: p.sharma@bank.example
           sensitivity: confidential
-          gt_note: "Legacy Core Data Model extract. fld_01=customer id, fld_02=customer full name (PII), fld_03=date of birth (PII), fld_04=monthly income (PII)."
+          gt_note: "Legacy Core Data Model extract. fld_01=customer id, fld_02=customer full name (PII), fld_03=date of birth (PII), fld_04=monthly income (PII)." # <-- GTO*
           rows: 60
           columns:
             - {name: fld_01, type: varchar(30)}
@@ -258,16 +262,17 @@ views:
     sensitivity: confidential
     gt_note: "View exposing customer names joined with balances — PII + financial."
 
+# Define files in the Analytics File Share
 files:
   - path: exports/retail_customers_2025.csv
-    domain: marketing
+    domain: marketing # <-- GTO*
     owner: t.nakamura@bank.example
-    sensitivity: restricted
-    gt_note: "Uncontrolled PII extract dropped on the share by marketing — exactly what discovery should surface."
+    sensitivity: restricted # <-- GTO*
+    gt_note: "Uncontrolled PII extract dropped on the share by marketing — exactly what discovery should surface." # <-- GTO*
     rows: 25
     columns:
       - {name: customer_id}
-      - {name: full_name, pii: person_name}
+      - {name: full_name, pii: person_name} # <-- pii is GTO*
       - {name: email_addr, pii: email}
       - {name: home_addr_txt, pii: address}
       - {name: last_purchase_amt}

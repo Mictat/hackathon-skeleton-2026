@@ -72,6 +72,11 @@ def cmd_demo():
     cmd_register()
 
 
+def cmd_reset():
+    cmd_init()
+    cmd_register()
+
+
 # def cmd_requirements():
 #     sh("uv", "export", "--all-groups", "--no-hashes", "-o", "requirements.txt")
 
@@ -91,6 +96,7 @@ COMMANDS = {
     "generate": (cmd_generate, "rebuild bank_sample DB + file share + ground truth from YAML"),
     "register": (cmd_register, "register YAML sources + org directory into Cairn (idempotent)"),
     "demo": (cmd_demo, "full rebuild: generate → init → register"),
+    "reset": (cmd_reset, "catalog-only reset: init + register (never touches ground truth)"),
     # "requirements": (cmd_requirements, "regenerate requirements.txt from uv.lock"),
     # "install-pip": (cmd_install_pip, "pip install from requirements.txt"),
 }

@@ -85,7 +85,7 @@ def seed() -> None:
                 source_type=SourceType.postgres,
                 environment=Environment.development,
                 connection_ref={"ref": "DEV_SAMPLE", "host": "localhost", "database": "bank_sample"},
-                status="connected",
+                status="mock",
                 notes=SAMPLE_NOTE,
             )
             db.add(source)
