@@ -80,6 +80,10 @@ class Asset(Base):
     )
     reviews: Mapped[list["Review"]] = relationship(back_populates="asset", cascade="all, delete-orphan")
 
+    # ---- Discovered raw metadata (agent INPUT — distinct from curated fields) ----
+    raw_comment: Mapped[str | None] = mapped_column(Text, nullable=True)  # e.g. PG table comment
+    row_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     __table_args__ = (
         UniqueConstraint("source_id", "full_path", name="uq_assets_source_path"),
         Index("ix_assets_governance_status", "governance_status"),
@@ -104,6 +108,7 @@ class AssetColumn(Base):
     pii_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_key_attribute: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    raw_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = ts_col()
 

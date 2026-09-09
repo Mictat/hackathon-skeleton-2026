@@ -12,6 +12,9 @@ dependencies = [
     "jinja2>=3.1",
     "python-multipart>=0.0.9",   # htmx forms later
     "httpx>=0.27",               # LLM calls later
+    "pyyaml>=6.0",
+    "faker>=26.0",
+    "pyarrow>=17.0",
 ]
 
 [dependency-groups]

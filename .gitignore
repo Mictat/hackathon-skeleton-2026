@@ -13,6 +13,10 @@ venv/
 .coverage
 htmlcov/
 
+# Generated file share (rebuilt from data/bank_environment.yaml)
+data/file_share/*
+!data/file_share/.gitkeep
+
 # Secrets — never commit
 .env
 *.env

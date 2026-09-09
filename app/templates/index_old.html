@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <title>TEMPNAME</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-base-200">
+    <div class="navbar bg-base-100 shadow">
+        <div class="flex-1 px-4">
+            <span class="text-xl font-bold">⛰️ TEMPNAME</span>
+            <span class="ml-2 text-sm opacity-60">AI Data Discovery &amp; Governance</span>
+        </div>
+    </div>
+    <div class="container mx-auto p-6">
+        <h2 class="text-lg font-semibold mb-4">Catalog status</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {% for label, key in [("Pending", "pending"), ("Auto-accepted", "auto_accepted"),
+            ("In review", "pending_review"), ("Approved", "approved"), ("Rejected", "rejected")] %}
+            <div class="card bg-base-100 shadow">
+                <div class="card-body py-4">
+                    <div class="text-3xl font-bold">{{ status_counts.get(key, 0) }}</div>
+                    <div class="text-sm opacity-70">{{ label }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <h2 class="text-lg font-semibold mt-8 mb-4">Data sources</h2>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body p-0">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Environment</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sources %}
+                        <tr>
+                            <td>{{ s.name }}</td>
+                            <td>{{ s.source_type.value }}</td>
+                            <td>{{ s.environment.value }}</td>
+                            <td>{{ s.status }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="opacity-60">No sources registered yet — day −6 lands the connectors.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

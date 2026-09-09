@@ -1,0 +1,67 @@
+<div id="status-board" hx-get="/pages/status-board" hx-trigger="every 2s" hx-swap="outerHTML">
+    <h2 class="text-lg font-semibold mb-2">Catalog status</h2>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+        {% for label, key in [("Pending", "pending"), ("Auto-accepted", "auto_accepted"),
+        ("In review", "pending_review"), ("Approved", "approved"), ("Rejected", "rejected")] %}
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-4">
+                <div class="text-3xl font-bold">{{ gov_counts.get(key, 0) }}</div>
+                <div class="text-sm opacity-70">{{ label }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="flex gap-2 flex-wrap mb-6">
+        {% for label, key in [("Discovered", "discovered"), ("Enriching", "enriching"), ("Enriched", "enriched")] %}
+        <span class="badge badge-outline">{{ label }}: {{ pipe_counts.get(key, 0) }}</span>
+        {% endfor %}
+    </div>
+    <h2 class="text-lg font-semibold mb-2">Data sources</h2>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Env</th>
+                        <th>Status</th>
+                        <th>Assets</th>
+                        <th>Last run</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sources %}
+                    <tr>
+                        <td class="font-medium">{{ item.s.name }}</td>
+                        <td>{{ item.s.source_type.value }}</td>
+                        <td>{{ item.s.environment.value }}</td>
+                        <td><span class="badge badge-ghost">{{ item.s.status }}</span></td>
+                        <td>{{ item.s.assets | length }}</td>
+                        <td>
+                            {% if item.last %}
+                            <span class="badge {% if item.last.status == 'completed' %}badge-success
+                                 {% elif item.last.status == 'failed' %}badge-error
+                                 {% else %}badge-warning{% endif %}">{{ item.last.status }}</span>
+                            <span class="text-xs opacity-60 ml-1">
+                                +{{ item.last.stats.get('new', 0) }} new / {{ item.last.stats.get('assets_seen', 0) }}
+                                seen
+                            </span>
+                            {% else %}<span class="opacity-40">never</span>{% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" hx-post="/pages/sources/{{ item.s.id }}/scan"
+                                hx-target="#status-board" hx-swap="outerHTML" hx-disabled-elt="this">
+                                Scan
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-xs opacity-50 mt-2">Auto-accept threshold: {{ "%.0f%%" | format(threshold * 100) }} confidence
+    </div>
+</div>

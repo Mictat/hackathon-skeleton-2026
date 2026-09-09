@@ -58,6 +58,20 @@ def cmd_fmt():
         sh("uv", "run", "ruff", "format", ".")
 
 
+def cmd_generate():
+    py("-m", "scripts.generate_bank_env")
+
+
+def cmd_register():
+    py("-m", "scripts.register_sources")
+
+
+def cmd_demo():
+    cmd_generate()
+    cmd_init()
+    cmd_register()
+
+
 # def cmd_requirements():
 #     sh("uv", "export", "--all-groups", "--no-hashes", "-o", "requirements.txt")
 
@@ -74,6 +88,9 @@ COMMANDS = {
     "dev": (cmd_dev, "run app with hot reload on http://localhost:8000"),
     "test": (cmd_test, "run smoke tests (needs db-up first)"),
     "fmt": (cmd_fmt, "ruff format"),
+    "generate": (cmd_generate, "rebuild bank_sample DB + file share + ground truth from YAML"),
+    "register": (cmd_register, "register YAML sources + org directory into Cairn (idempotent)"),
+    "demo": (cmd_demo, "full rebuild: generate → init → register"),
     # "requirements": (cmd_requirements, "regenerate requirements.txt from uv.lock"),
     # "install-pip": (cmd_install_pip, "pip install from requirements.txt"),
 }

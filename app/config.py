@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
     llm_api_key: str = ""
     llm_cache_dir: str = ".llm_cache"
+    scan_pacing_ms: int = 0  # demo day: set 150 → assets visibly stream in
+    sample_db_password: str = "bank_dev"  # dev fallback; prod sets real env var
 
 
 @lru_cache

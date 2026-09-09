@@ -1,0 +1,111 @@
+source_type,full_path,column,is_pii,pii_type,sensitivity,domain,owner,notes
+table,retail_banking.customer_master,customer_id,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,full_name,Y,person_name,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,email_addr,Y,email,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,phone_no,Y,phone,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,date_of_birth,Y,date_of_birth,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,home_addr_txt,Y,address,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,branch_code,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,customer_since,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.customer_master,kyc_status,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.accounts,account_id,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.accounts,customer_id,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.accounts,account_type,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.accounts,currency,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.accounts,opened_date,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.accounts,status,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.accounts,current_balance,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.accounts,branch_code,N,,internal,retail,s.chen@bank.example,
+table,retail_banking.daily_transactions,txn_id,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.daily_transactions,account_id,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.daily_transactions,txn_amt,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.daily_transactions,value_date,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.daily_transactions,merchant_desc,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.daily_transactions,channel_cd,N,,confidential,retail,s.chen@bank.example,
+table,retail_banking.daily_transactions,posted_ts,N,,confidential,retail,s.chen@bank.example,
+table,lending.loan_applications,application_id,N,,restricted,lending,r.gomez@bank.example,
+table,lending.loan_applications,customer_id,N,,restricted,lending,r.gomez@bank.example,
+table,lending.loan_applications,requested_amt,N,,restricted,lending,r.gomez@bank.example,
+table,lending.loan_applications,monthly_income,Y,income,restricted,lending,r.gomez@bank.example,
+table,lending.loan_applications,employment_status,N,,restricted,lending,r.gomez@bank.example,
+table,lending.loan_applications,credit_score,N,,restricted,lending,r.gomez@bank.example,
+table,lending.loan_applications,decision_cd,N,,restricted,lending,r.gomez@bank.example,
+table,lending.loan_applications,application_date,N,,restricted,lending,r.gomez@bank.example,
+table,lending.loan_repayments,repayment_id,N,,internal,lending,r.gomez@bank.example,
+table,lending.loan_repayments,loan_id,N,,internal,lending,r.gomez@bank.example,
+table,lending.loan_repayments,installment_no,N,,internal,lending,r.gomez@bank.example,
+table,lending.loan_repayments,paid_amt,N,,internal,lending,r.gomez@bank.example,
+table,lending.loan_repayments,payment_date,N,,internal,lending,r.gomez@bank.example,
+table,lending.loan_repayments,principal_component,N,,internal,lending,r.gomez@bank.example,
+table,core.CDM_TBL_08,fld_01,N,,confidential,retail,p.sharma@bank.example,"Legacy Core Data Model extract. fld_01=customer id, fld_02=customer full name (PII), fld_03=date of birth (PII), fld_04=monthly income (PII)."
+table,core.CDM_TBL_08,fld_02,N,,confidential,retail,p.sharma@bank.example,"Legacy Core Data Model extract. fld_01=customer id, fld_02=customer full name (PII), fld_03=date of birth (PII), fld_04=monthly income (PII)."
+table,core.CDM_TBL_08,fld_03,N,,confidential,retail,p.sharma@bank.example,"Legacy Core Data Model extract. fld_01=customer id, fld_02=customer full name (PII), fld_03=date of birth (PII), fld_04=monthly income (PII)."
+table,core.CDM_TBL_08,fld_04,N,,confidential,retail,p.sharma@bank.example,"Legacy Core Data Model extract. fld_01=customer id, fld_02=customer full name (PII), fld_03=date of birth (PII), fld_04=monthly income (PII)."
+table,core.cust_tbl_a,cust_ref,N,,confidential,retail,p.sharma@bank.example,"Contact snapshot. cust_ref=customer id, eml_addr=email (PII), mob_no=mobile phone (PII)."
+table,core.cust_tbl_a,eml_addr,N,,confidential,retail,p.sharma@bank.example,"Contact snapshot. cust_ref=customer id, eml_addr=email (PII), mob_no=mobile phone (PII)."
+table,core.cust_tbl_a,mob_no,N,,confidential,retail,p.sharma@bank.example,"Contact snapshot. cust_ref=customer id, eml_addr=email (PII), mob_no=mobile phone (PII)."
+table,core.cust_tbl_a,upd_ts,N,,confidential,retail,p.sharma@bank.example,"Contact snapshot. cust_ref=customer id, eml_addr=email (PII), mob_no=mobile phone (PII)."
+table,staging.stg_payments_load,load_id,N,,internal,it,j.park@bank.example,
+table,staging.stg_payments_load,src_ref,N,,internal,it,j.park@bank.example,
+table,staging.stg_payments_load,txn_ref,N,,internal,it,j.park@bank.example,
+table,staging.stg_payments_load,amt,N,,internal,it,j.park@bank.example,
+table,staging.stg_payments_load,batch_id,N,,internal,it,j.park@bank.example,
+table,staging.stg_payments_load,load_ts,N,,internal,it,j.park@bank.example,
+table,finance.gl_entries,je_id,N,,internal,finance,d.osei@bank.example,
+table,finance.gl_entries,account_cd,N,,internal,finance,d.osei@bank.example,
+table,finance.gl_entries,debit_amt,N,,internal,finance,d.osei@bank.example,
+table,finance.gl_entries,credit_amt,N,,internal,finance,d.osei@bank.example,
+table,finance.gl_entries,posting_date,N,,internal,finance,d.osei@bank.example,
+table,finance.gl_entries,cost_ctr,N,,internal,finance,d.osei@bank.example,
+table,finance.gl_entries,journal_src,N,,internal,finance,d.osei@bank.example,
+table,finance.vendor_payments,pay_id,N,,confidential,finance,d.osei@bank.example,Vendor bank details (IBAN) are sensitive financial data but not personal PII â€” calibration case for the classifier.
+table,finance.vendor_payments,vendor_name,N,,confidential,finance,d.osei@bank.example,Vendor bank details (IBAN) are sensitive financial data but not personal PII â€” calibration case for the classifier.
+table,finance.vendor_payments,vendor_iban,N,,confidential,finance,d.osei@bank.example,Vendor bank details (IBAN) are sensitive financial data but not personal PII â€” calibration case for the classifier.
+table,finance.vendor_payments,pay_amt,N,,confidential,finance,d.osei@bank.example,Vendor bank details (IBAN) are sensitive financial data but not personal PII â€” calibration case for the classifier.
+table,finance.vendor_payments,currency,N,,confidential,finance,d.osei@bank.example,Vendor bank details (IBAN) are sensitive financial data but not personal PII â€” calibration case for the classifier.
+table,finance.vendor_payments,pay_date,N,,confidential,finance,d.osei@bank.example,Vendor bank details (IBAN) are sensitive financial data but not personal PII â€” calibration case for the classifier.
+table,risk.exposure_summary,exposure_id,N,,internal,risk,m.webb@bank.example,
+table,risk.exposure_summary,counterparty_id,N,,internal,risk,m.webb@bank.example,
+table,risk.exposure_summary,product_cd,N,,internal,risk,m.webb@bank.example,
+table,risk.exposure_summary,exposure_amt,N,,internal,risk,m.webb@bank.example,
+table,risk.exposure_summary,rating_cd,N,,internal,risk,m.webb@bank.example,
+table,risk.exposure_summary,as_of_date,N,,internal,risk,m.webb@bank.example,
+table,risk.watchlist_accounts,watch_id,N,,restricted,risk,m.webb@bank.example,Customer accounts under AML/sanctions review.
+table,risk.watchlist_accounts,account_id,N,,restricted,risk,m.webb@bank.example,Customer accounts under AML/sanctions review.
+table,risk.watchlist_accounts,reason_cd,N,,restricted,risk,m.webb@bank.example,Customer accounts under AML/sanctions review.
+table,risk.watchlist_accounts,added_by,N,,restricted,risk,m.webb@bank.example,Customer accounts under AML/sanctions review.
+table,risk.watchlist_accounts,added_date,N,,restricted,risk,m.webb@bank.example,Customer accounts under AML/sanctions review.
+table,marketing.campaign_responses,response_id,N,,confidential,marketing,t.nakamura@bank.example,
+table,marketing.campaign_responses,campaign_id,N,,confidential,marketing,t.nakamura@bank.example,
+table,marketing.campaign_responses,customer_id,N,,confidential,marketing,t.nakamura@bank.example,
+table,marketing.campaign_responses,email_addr,Y,email,confidential,marketing,t.nakamura@bank.example,
+table,marketing.campaign_responses,responded_flag,N,,confidential,marketing,t.nakamura@bank.example,
+table,marketing.campaign_responses,response_dt,N,,confidential,marketing,t.nakamura@bank.example,
+table,marketing.campaign_responses,channel_cd,N,,confidential,marketing,t.nakamura@bank.example,
+table,compliance.kyc_documents,doc_id,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.kyc_documents,customer_id,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.kyc_documents,doc_type,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.kyc_documents,uploaded_by,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.kyc_documents,upload_ts,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.kyc_documents,expiry_date,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.aml_alerts,alert_id,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.aml_alerts,customer_id,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.aml_alerts,alert_type,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.aml_alerts,severity,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.aml_alerts,status,N,,restricted,compliance,e.petrova@bank.example,
+table,compliance.aml_alerts,created_ts,N,,restricted,compliance,e.petrova@bank.example,
+view,retail_banking.v_customer_summary,(view),N,,confidential,retail,s.chen@bank.example,View exposing customer names joined with balances â€” PII + financial.
+file,exports/retail_customers_2025.csv,customer_id,N,,restricted,marketing,t.nakamura@bank.example,Uncontrolled PII extract dropped on the share by marketing â€” exactly what discovery should surface.
+file,exports/retail_customers_2025.csv,full_name,Y,person_name,restricted,marketing,t.nakamura@bank.example,Uncontrolled PII extract dropped on the share by marketing â€” exactly what discovery should surface.
+file,exports/retail_customers_2025.csv,email_addr,Y,email,restricted,marketing,t.nakamura@bank.example,Uncontrolled PII extract dropped on the share by marketing â€” exactly what discovery should surface.
+file,exports/retail_customers_2025.csv,home_addr_txt,Y,address,restricted,marketing,t.nakamura@bank.example,Uncontrolled PII extract dropped on the share by marketing â€” exactly what discovery should surface.
+file,exports/retail_customers_2025.csv,last_purchase_amt,N,,restricted,marketing,t.nakamura@bank.example,Uncontrolled PII extract dropped on the share by marketing â€” exactly what discovery should surface.
+file,tmp/tmp_2023_q1_export.csv,c_id,N,,confidential,retail,,"Cryptic ad-hoc export. c_id=customer id, nm=full name (PII), em=email (PII), ph=phone (PII). Owner unknown â€” hard case for ownership inference."
+file,tmp/tmp_2023_q1_export.csv,nm,Y,person_name,confidential,retail,,"Cryptic ad-hoc export. c_id=customer id, nm=full name (PII), em=email (PII), ph=phone (PII). Owner unknown â€” hard case for ownership inference."
+file,tmp/tmp_2023_q1_export.csv,em,Y,email,confidential,retail,,"Cryptic ad-hoc export. c_id=customer id, nm=full name (PII), em=email (PII), ph=phone (PII). Owner unknown â€” hard case for ownership inference."
+file,tmp/tmp_2023_q1_export.csv,ph,Y,phone,confidential,retail,,"Cryptic ad-hoc export. c_id=customer id, nm=full name (PII), em=email (PII), ph=phone (PII). Owner unknown â€” hard case for ownership inference."
+file,finance/loan_performance_2024.parquet,loan_id,N,,confidential,lending,r.gomez@bank.example,
+file,finance/loan_performance_2024.parquet,current_balance,N,,confidential,lending,r.gomez@bank.example,
+file,finance/loan_performance_2024.parquet,days_past_due,N,,confidential,lending,r.gomez@bank.example,
+file,finance/loan_performance_2024.parquet,credit_score,N,,confidential,lending,r.gomez@bank.example,
+file,finance/loan_performance_2024.parquet,as_of_date,N,,confidential,lending,r.gomez@bank.example,

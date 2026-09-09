@@ -1,0 +1,295 @@
+# =====================================================================
+# Cairn synthetic enterprise environment — the single definition of our
+# fake bank. scripts/generate_bank_env.py materializes it into a real
+# Postgres DB (bank_sample), a file share, and the eval ground truth.
+#
+# FIELD SEMANTICS — read before editing:
+#   comment:   written to the DB. VISIBLE to agents. Use sparingly —
+#              most legacy tables have none.
+#   pii / domain / owner / sensitivity / gt_note:
+#              GROUND TRUTH ONLY — never written to the environment.
+#              These are the labels agents are scored against.
+#   owner:     email of someone in `people:`. Use "" to create a
+#              deliberately-unknown ownership case.
+#   rows:      fake row count generated locally (never leaves the env).
+# =====================================================================
+
+people:
+  - {full_name: Sarah Chen, email: s.chen@bank.example, title: Head of Retail Data, team: Retail Data Platform, department: Retail Banking}
+  - {full_name: Marcus Webb, email: m.webb@bank.example, title: Risk Data Lead, team: Risk Data Management, department: Risk Management}
+  - {full_name: Priya Sharma, email: p.sharma@bank.example, title: Core Banking DBA, team: Core Systems, department: IT & Data}
+  - {full_name: David Osei, email: d.osei@bank.example, title: Finance Data Owner, team: Finance Systems, department: Finance}
+  - {full_name: Elena Petrova, email: e.petrova@bank.example, title: Compliance Analyst, team: Regulatory Reporting, department: Compliance}
+  - {full_name: Tom Nakamura, email: t.nakamura@bank.example, title: Marketing Analyst, team: Campaign Analytics, department: Marketing}
+  - {full_name: Rachel Gomez, email: r.gomez@bank.example, title: Head of Lending Ops, team: Lending Operations, department: Retail Banking}
+  - {full_name: Aisha Bello, email: a.bello@bank.example, title: Payments Data Owner, team: Wholesale Payments, department: Wholesale Banking}
+  - {full_name: James Park, email: j.park@bank.example, title: Head of Data Engineering, team: Data Platform, department: IT & Data}
+
+sources:
+  - name: Retail Core DB (PostgreSQL)
+    type: postgres
+    environment: production
+    connection: {host: localhost, port: 5433, database: bank_sample, user: bank, password_env: BANK_SAMPLE_PASSWORD}
+  - name: Analytics File Share
+    type: file
+    environment: analytics
+    connection: {root: data/file_share}
+
+database:
+  schemas:
+    - schema: retail_banking
+      tables:
+        - name: customer_master
+          domain: retail
+          owner: s.chen@bank.example
+          sensitivity: confidential
+          comment: "Golden source for retail customer identity and relationships."
+          rows: 40
+          columns:
+            - {name: customer_id, type: varchar(20), key: true, comment: "Primary customer identifier"}
+            - {name: full_name, type: varchar(120), pii: person_name}
+            - {name: email_addr, type: varchar(200), pii: email}
+            - {name: phone_no, type: varchar(30), pii: phone}
+            - {name: date_of_birth, type: date, pii: date_of_birth}
+            - {name: home_addr_txt, type: varchar(300), pii: address}
+            - {name: branch_code, type: char(4)}
+            - {name: customer_since, type: date}
+            - {name: kyc_status, type: varchar(12)}
+        - name: accounts
+          domain: retail
+          owner: s.chen@bank.example
+          sensitivity: internal
+          comment: "Customer account records across product types."
+          rows: 80
+          columns:
+            - {name: account_id, type: varchar(20), key: true}
+            - {name: customer_id, type: varchar(20)}
+            - {name: account_type, type: varchar(20)}
+            - {name: currency, type: char(3)}
+            - {name: opened_date, type: date}
+            - {name: status, type: varchar(12)}
+            - {name: current_balance, type: "numeric(18,2)"}
+            - {name: branch_code, type: char(4)}
+        - name: daily_transactions
+          domain: retail
+          owner: s.chen@bank.example
+          sensitivity: confidential
+          rows: 120
+          columns:
+            - {name: txn_id, type: bigint, key: true}
+            - {name: account_id, type: varchar(20)}
+            - {name: txn_amt, type: "numeric(15,2)"}
+            - {name: value_date, type: date}
+            - {name: merchant_desc, type: varchar(200)}
+            - {name: channel_cd, type: varchar(8)}
+            - {name: posted_ts, type: timestamp}
+    - schema: lending
+      tables:
+        - name: loan_applications
+          domain: lending
+          owner: r.gomez@bank.example
+          sensitivity: restricted
+          comment: "Retail loan applications incl. affordability data."
+          rows: 50
+          columns:
+            - {name: application_id, type: varchar(20), key: true}
+            - {name: customer_id, type: varchar(20)}
+            - {name: requested_amt, type: "numeric(14,2)"}
+            - {name: monthly_income, type: "numeric(12,2)", pii: income}
+            - {name: employment_status, type: varchar(30)}
+            - {name: credit_score, type: int}
+            - {name: decision_cd, type: varchar(8)}
+            - {name: application_date, type: date}
+        - name: loan_repayments
+          domain: lending
+          owner: r.gomez@bank.example
+          sensitivity: internal
+          rows: 150
+          columns:
+            - {name: repayment_id, type: bigint, key: true}
+            - {name: loan_id, type: varchar(20)}
+            - {name: installment_no, type: int}
+            - {name: paid_amt, type: "numeric(12,2)"}
+            - {name: payment_date, type: date}
+            - {name: principal_component, type: "numeric(12,2)"}
+    - schema: core
+      tables:
+        - name: CDM_TBL_08
+          domain: retail
+          owner: p.sharma@bank.example
+          sensitivity: confidential
+          gt_note: "Legacy Core Data Model extract. fld_01=customer id, fld_02=customer full name (PII), fld_03=date of birth (PII), fld_04=monthly income (PII)."
+          rows: 60
+          columns:
+            - {name: fld_01, type: varchar(30)}
+            - {name: fld_02, type: varchar(120)}
+            - {name: fld_03, type: date}
+            - {name: fld_04, type: "numeric(12,2)"}
+        - name: cust_tbl_a
+          domain: retail
+          owner: p.sharma@bank.example
+          sensitivity: confidential
+          gt_note: "Contact snapshot. cust_ref=customer id, eml_addr=email (PII), mob_no=mobile phone (PII)."
+          rows: 45
+          columns:
+            - {name: cust_ref, type: varchar(20), key: true}
+            - {name: eml_addr, type: varchar(200)}
+            - {name: mob_no, type: varchar(30)}
+            - {name: upd_ts, type: timestamp}
+    - schema: staging
+      tables:
+        - name: stg_payments_load
+          domain: it
+          owner: j.park@bank.example
+          sensitivity: internal
+          comment: "Transient staging load — do not report from this table."
+          rows: 200
+          columns:
+            - {name: load_id, type: bigint, key: true}
+            - {name: src_ref, type: varchar(40)}
+            - {name: txn_ref, type: varchar(40)}
+            - {name: amt, type: "numeric(15,2)"}
+            - {name: batch_id, type: varchar(20)}
+            - {name: load_ts, type: timestamp}
+    - schema: finance
+      tables:
+        - name: gl_entries
+          domain: finance
+          owner: d.osei@bank.example
+          sensitivity: internal
+          comment: "General ledger journal entries."
+          rows: 300
+          columns:
+            - {name: je_id, type: bigint, key: true}
+            - {name: account_cd, type: varchar(20)}
+            - {name: debit_amt, type: "numeric(15,2)"}
+            - {name: credit_amt, type: "numeric(15,2)"}
+            - {name: posting_date, type: date}
+            - {name: cost_ctr, type: varchar(12)}
+            - {name: journal_src, type: varchar(20)}
+        - name: vendor_payments
+          domain: finance
+          owner: d.osei@bank.example
+          sensitivity: confidential
+          gt_note: "Vendor bank details (IBAN) are sensitive financial data but not personal PII — calibration case for the classifier."
+          rows: 90
+          columns:
+            - {name: pay_id, type: bigint, key: true}
+            - {name: vendor_name, type: varchar(150)}
+            - {name: vendor_iban, type: varchar(34)}
+            - {name: pay_amt, type: "numeric(14,2)"}
+            - {name: currency, type: char(3)}
+            - {name: pay_date, type: date}
+    - schema: risk
+      tables:
+        - name: exposure_summary
+          domain: risk
+          owner: m.webb@bank.example
+          sensitivity: internal
+          rows: 70
+          columns:
+            - {name: exposure_id, type: bigint, key: true}
+            - {name: counterparty_id, type: varchar(20)}
+            - {name: product_cd, type: varchar(12)}
+            - {name: exposure_amt, type: "numeric(18,2)"}
+            - {name: rating_cd, type: varchar(8)}
+            - {name: as_of_date, type: date}
+        - name: watchlist_accounts
+          domain: risk
+          owner: m.webb@bank.example
+          sensitivity: restricted
+          gt_note: "Customer accounts under AML/sanctions review."
+          rows: 25
+          columns:
+            - {name: watch_id, type: bigint, key: true}
+            - {name: account_id, type: varchar(20)}
+            - {name: reason_cd, type: varchar(12)}
+            - {name: added_by, type: varchar(60)}
+            - {name: added_date, type: date}
+    - schema: marketing
+      tables:
+        - name: campaign_responses
+          domain: marketing
+          owner: t.nakamura@bank.example
+          sensitivity: confidential
+          rows: 250
+          columns:
+            - {name: response_id, type: bigint, key: true}
+            - {name: campaign_id, type: varchar(20)}
+            - {name: customer_id, type: varchar(20)}
+            - {name: email_addr, type: varchar(200), pii: email}
+            - {name: responded_flag, type: char(1)}
+            - {name: response_dt, type: date}
+            - {name: channel_cd, type: varchar(10)}
+    - schema: compliance
+      tables:
+        - name: kyc_documents
+          domain: compliance
+          owner: e.petrova@bank.example
+          sensitivity: restricted
+          comment: "KYC document register (metadata only; blobs live in the DMS)."
+          rows: 60
+          columns:
+            - {name: doc_id, type: bigint, key: true}
+            - {name: customer_id, type: varchar(20)}
+            - {name: doc_type, type: varchar(20)}
+            - {name: uploaded_by, type: varchar(60)}
+            - {name: upload_ts, type: timestamp}
+            - {name: expiry_date, type: date}
+        - name: aml_alerts
+          domain: compliance
+          owner: e.petrova@bank.example
+          sensitivity: restricted
+          rows: 40
+          columns:
+            - {name: alert_id, type: bigint, key: true}
+            - {name: customer_id, type: varchar(20)}
+            - {name: alert_type, type: varchar(20)}
+            - {name: severity, type: varchar(10)}
+            - {name: status, type: varchar(12)}
+            - {name: created_ts, type: timestamp}
+
+views:
+  - schema: retail_banking
+    name: v_customer_summary
+    sql: "SELECT c.customer_id, c.full_name, a.account_id, a.current_balance FROM retail_banking.customer_master c JOIN retail_banking.accounts a ON a.customer_id = c.customer_id"
+    domain: retail
+    owner: s.chen@bank.example
+    sensitivity: confidential
+    gt_note: "View exposing customer names joined with balances — PII + financial."
+
+files:
+  - path: exports/retail_customers_2025.csv
+    domain: marketing
+    owner: t.nakamura@bank.example
+    sensitivity: restricted
+    gt_note: "Uncontrolled PII extract dropped on the share by marketing — exactly what discovery should surface."
+    rows: 25
+    columns:
+      - {name: customer_id}
+      - {name: full_name, pii: person_name}
+      - {name: email_addr, pii: email}
+      - {name: home_addr_txt, pii: address}
+      - {name: last_purchase_amt}
+  - path: tmp/tmp_2023_q1_export.csv
+    domain: retail
+    owner: ""
+    sensitivity: confidential
+    gt_note: "Cryptic ad-hoc export. c_id=customer id, nm=full name (PII), em=email (PII), ph=phone (PII). Owner unknown — hard case for ownership inference."
+    rows: 30
+    columns:
+      - {name: c_id}
+      - {name: nm, pii: person_name}
+      - {name: em, pii: email}
+      - {name: ph, pii: phone}
+  - path: finance/loan_performance_2024.parquet
+    domain: lending
+    owner: r.gomez@bank.example
+    sensitivity: confidential
+    rows: 60
+    columns:
+      - {name: loan_id}
+      - {name: current_balance}
+      - {name: days_past_due}
+      - {name: credit_score}
+      - {name: as_of_date}
