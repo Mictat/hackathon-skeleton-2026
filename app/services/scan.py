@@ -13,6 +13,7 @@ from app.db import SessionLocal
 from app.models import ActorType, Asset, AssetColumn, DataSource, PipelineStatus, ScanRun
 from app.services.audit import log_event
 from app.services.enrich import enrich_discovered_assets
+from app.services.triage import apply_triage
 
 
 def start_scan(source_id: int, trigger: str = "manual") -> int:
@@ -59,6 +60,7 @@ def _execute_scan(run_id: int) -> None:
                 raise ConnectionError(detail)
             source.status = "connected"
             db.commit()
+            # --- discovery and upsert assets ---
             for raw in connector.discover():
                 try:
                     _, created = _upsert_asset(db, run, source, raw)
@@ -84,6 +86,20 @@ def _execute_scan(run_id: int) -> None:
                     actor_type=ActorType.system,
                     actor="scan-service",
                     event_type="enrichment_error",
+                    entity_type="data_source",
+                    entity_id=source.id,
+                    run_id=run.id,
+                    payload={"error": str(e)[:300]},
+                )
+            # --- triage: confidence vs threshold -> auto-accept or human queue ---
+            try:
+                stats.update(apply_triage(db, run=run))
+            except Exception as e:
+                log_event(
+                    db,
+                    actor_type=ActorType.system,
+                    actor="scan-service",
+                    event_type="triage_error",
                     entity_type="data_source",
                     entity_id=source.id,
                     run_id=run.id,

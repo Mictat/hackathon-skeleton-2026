@@ -19,3 +19,11 @@ def set_confidence_threshold(db: Session, value: float, updated_by: str = "syste
         row.updated_by = updated_by
     else:
         db.add(Setting(key=THRESHOLD_KEY, value={"value": value}, updated_by=updated_by))
+
+
+MIN_THRESHOLD = 0.50
+MAX_THRESHOLD = 0.99
+
+
+def clamp_threshold(value: float) -> float:
+    return round(min(max(float(value), MIN_THRESHOLD), MAX_THRESHOLD), 2)

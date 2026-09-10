@@ -1,0 +1,13 @@
+<div id="threshold-bar" class="card bg-base-100 shadow mt-4">
+    <div class="card-body py-4">
+        <div class="flex items-center gap-4 flex-wrap">
+            <span class="text-sm font-semibold whitespace-nowrap">Auto-accept threshold</span>
+            <input type="range" min="0.50" max="0.99" step="0.01" value="{{ '%.2f' | format(threshold) }}"
+                name="threshold" class="range range-primary w-56" hx-post="/settings/threshold"
+                hx-trigger="input delay:400ms" hx-target="#board-root" hx-swap="outerHTML" hx-disabled-elt="this">
+            <span class="font-mono font-bold text-lg">{{ "%.2f" | format(threshold) }}</span>
+            <span class="text-xs opacity-60">↓ agents decide more · ↑ humans decide more —
+                re-triage is instant, no re-scan, nothing approved is ever touched</span>
+        </div>
+    </div>
+</div>

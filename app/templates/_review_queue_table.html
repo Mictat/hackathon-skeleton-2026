@@ -1,0 +1,60 @@
+<div id="review-queue" hx-get="/pages/review-queue?status={{ status }}" hx-trigger="every 5s" hx-swap="outerHTML">
+    {% if flash %}<div class="alert alert-success mb-4 text-sm">{{ flash }}</div>{% endif %}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <table class="table table-zebra">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Source</th>
+                        <th>Confidence</th>
+                        <th>Proposed</th>
+                        <th>PII</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr class="hover">
+                        <td>
+                            <a class="link link-primary font-medium" href="/assets/{{ row.asset.id }}">
+                                {{ row.asset.full_path }}</a>
+                            {% if row.asset.governance_status.value == 'auto_accepted' %}
+                            <span class="badge badge-info badge-xs ml-1">auto</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-xs opacity-70">{{ row.source_name }}</td>
+                        <td>
+                            {% if row.asset.overall_confidence is not none %}
+                            {% set c = row.asset.overall_confidence %}
+                            <span class="badge {% if c >= 0.8 %}badge-success
+                                  {% elif c >= 0.65 %}badge-warning
+                                  {% else %}badge-error{% endif %}">
+                                {{ "%.2f" | format(c) }}</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-xs max-w-md">{{ row.proposed_summary }}</td>
+                        <td>{% if row.pii_count %}<span class="badge badge-error badge-sm">
+                                {{ row.pii_count }}</span>{% else %}<span class="opacity-30">—</span>{% endif %}</td>
+                        <td class="whitespace-nowrap">
+                            {% if row.asset.governance_status.value in ('pending_review', 'auto_accepted') %}
+                            <button class="btn btn-success btn-xs" hx-post="/review/{{ row.asset.id }}/quick-approve"
+                                hx-target="#review-queue" hx-swap="outerHTML"
+                                hx-confirm="Approve agent proposals for {{ row.asset.full_path }}?">
+                                Approve</button>
+                            {% endif %}
+                            <a class="btn btn-ghost btn-xs" href="/assets/{{ row.asset.id }}">Open</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="opacity-60 py-8 text-center">
+                            Nothing in “{{ status }}” — the agents are keeping up.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-xs opacity-50 mt-2">{{ rows | length }} assets · lowest confidence first</div>
+</div>

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Review queue — Cairn{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <h1 class="text-xl font-bold">Review queue</h1>
+    <div class="tabs tabs-boxed">
+        {% for st, label in tabs %}
+        <a class="tab {% if status == st %}tab-active{% endif %}" href="/review?status={{ st }}">{{ label }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% include "_review_queue_table.html" %}
+{% endblock %}

@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block title %}{{ asset.full_path }} — Cairn{% endblock %}
+{% block content %}
+{% set gs = asset.governance_status.value %}
+
+<div class="flex flex-wrap items-center gap-2 mb-1">
+    <h1 class="text-xl font-bold font-mono">{{ asset.full_path }}</h1>
+    <span class="badge badge-outline">{{ asset.asset_type.value }}</span>
+    <span class="badge badge-ghost">{{ source.name }}</span>
+    {% if asset.row_count is not none %}
+    <span class="badge badge-ghost">{{ '{:,}'.format(asset.row_count) }} rows</span>
+    {% endif %}
+</div>
+<div class="flex flex-wrap items-center gap-2 mb-6 text-xs">
+    <span class="badge badge-neutral">{{ asset.pipeline_status.value }}</span>
+    <span class="badge {% if gs == 'approved' %}badge-success{% elif gs == 'rejected' %}badge-error
+                      {% elif gs == 'auto_accepted' %}badge-info{% else %}badge-warning{% endif %}">
+        {{ gs.replace('_', ' ') }}</span>
+    {% if asset.overall_confidence is not none %}
+    <span class="badge {% if asset.overall_confidence >= threshold %}badge-success
+                      {% else %}badge-warning{% endif %}">
+        confidence {{ "%.2f" | format(asset.overall_confidence) }}</span>
+    <span class="opacity-60">threshold {{ "%.2f" | format(threshold) }}</span>
+    {% endif %}
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title text-base">Catalog entry
+                {% if gs == 'approved' %}<span class="badge badge-success badge-sm">human-approved</span>
+                {% elif gs == 'auto_accepted' %}<span class="badge badge-info badge-sm">agent-applied</span>
+                {% endif %}
+            </h2>
+            <div class="text-sm space-y-1">
+                <p><span class="font-semibold">Description:</span>
+                    {{ asset.description or '—' }}</p>
+                <p><span class="font-semibold">Domain:</span> {{ asset.business_domain or '—' }}</p>
+                <p><span class="font-semibold">Sensitivity:</span>
+                    {% if asset.sensitivity %}
+                    <span class="badge badge-sm {% if asset.sensitivity.value in ('restricted', 'confidential') %}badge-error
+                                     {% elif asset.sensitivity.value == 'internal' %}badge-warning
+                                     {% else %}badge-ghost{% endif %}">
+                        {{ asset.sensitivity.value }}</span>
+                    {% else %}—{% endif %}
+                </p>
+                <p><span class="font-semibold">Owner:</span>
+                    {% if owner %}{{ owner.full_name }} <span class="opacity-60">{{ owner.email }}</span>
+                    {% else %}<span class="opacity-40">unassigned</span>{% endif %}</p>
+                <p><span class="font-semibold">Steward:</span>
+                    {% if steward %}{{ steward.name }}{% else %}—{% endif %}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title text-base">Review history</h2>
+            {% for item in reviews %}
+            <div class="text-xs border-t border-base-200 py-1.5 first:border-t-0">
+                <span class="badge badge-sm {% if item.rv.action.value == 'approved' %}badge-success
+                                   {% elif item.rv.action.value == 'rejected' %}badge-error
+                                   {% elif item.rv.action.value == 'edited' %}badge-primary
+                                   {% else %}badge-ghost{% endif %}">{{ item.rv.action.value }}</span>
+                <span class="font-medium">{{ item.reviewer_name }}</span>
+                <span class="opacity-50">{{ item.rv.created_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+                {% if item.rv.comment %}<div class="opacity-70 mt-0.5">“{{ item.rv.comment }}”</div>{% endif %}
+                {% if item.rv.changes %}
+                <details class="mt-0.5">
+                    <summary class="cursor-pointer opacity-50 text-[10px]">changes</summary>
+                    <pre
+                        class="text-[10px] bg-base-200 p-2 rounded mt-1 overflow-x-auto">{{ item.rv.changes | tojson }}</pre>
+                </details>
+                {% endif %}
+            </div>
+            {% else %}<p class="text-xs opacity-50">No human review yet.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+
+<h2 class="text-lg font-semibold mt-8 mb-2">Agent proposals
+    <span class="text-xs opacity-50 font-normal">latest per agent · every proposal recorded with provenance</span>
+</h2>
+<div class="grid lg:grid-cols-3 gap-4">
+    {% for name, label in [("classification", "Classification"),
+    ("ownership", "Ownership"),
+    ("description", "Description")] %}
+    {% set r = results.get(name) %}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h3 class="card-title text-sm justify-between">{{ label }}
+                {% if r and r.confidence is not none %}
+                <span class="badge {% if r.confidence >= 0.8 %}badge-success
+                          {% elif r.confidence >= 0.6 %}badge-warning
+                          {% else %}badge-error{% endif %} badge-sm">
+                    {{ "%.2f" | format(r.confidence) }}</span>
+                {% else %}<span class="badge badge-error badge-sm">failed</span>{% endif %}
+            </h3>
+            {% if r %}
+            <div class="text-[10px] opacity-50 font-mono">{{ r.model }}
+                {% if r.from_cache %} · cached{% endif %}
+                {% if r.latency_ms %} · {{ r.latency_ms }}ms{% endif %}</div>
+            {% if name == 'classification' %}
+            <div class="text-xs mt-1">sensitivity:
+                <span class="badge badge-sm">{{ r.result.asset_sensitivity }}</span>
+                <span class="opacity-60">({{ "%.2f" | format(r.result.sensitivity_confidence or 0) }})</span>
+                {% if r.result.degraded %}<span class="badge badge-warning badge-xs">degraded</span>{% endif %}
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table table-xs">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>PII</th>
+                            <th>Conf</th>
+                            <th>Src</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in r.result.columns %}
+                        <tr>
+                            <td class="font-mono">{{ c.name }}</td>
+                            <td>{% if c.is_pii %}<span class="badge badge-error badge-xs">{{ c.pii_type }}</span>
+                                {% else %}<span class="opacity-30">—</span>{% endif %}</td>
+                            <td>{{ "%.2f" | format(c.confidence or 0) }}</td>
+                            <td class="opacity-60" title="{{ c.reasoning }}">{{ c.source }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif name == 'ownership' %}
+            <div class="text-xs mt-1">domain:
+                <span class="badge badge-sm">{{ r.result.business_domain }}</span>
+                <span class="opacity-60">({{ "%.2f" | format(r.result.domain_confidence or 0) }})</span>
+            </div>
+            {% for c in r.result.owner_candidates %}
+            <div class="text-xs py-1 border-t border-base-200 mt-1">
+                <div class="flex justify-between">
+                    <span class="font-medium">{{ c.email }}</span>
+                    <span class="opacity-60">{{ "%.2f" | format(c.score) }}</span>
+                </div>
+                <div class="opacity-60">{{ c.match_reason }}</div>
+            </div>
+            {% else %}<p class="text-xs opacity-60 italic mt-1">No owner candidates — unknown ownership.</p>
+            {% endfor %}
+            {% if r.result.rationale %}<p class="text-xs opacity-60 mt-2">{{ r.result.rationale }}</p>{% endif %}
+            {% else %}
+            <p class="text-xs mt-1">{{ r.result.description }}</p>
+            {% if r.result.key_attributes %}
+            <div class="flex flex-wrap gap-1 mt-2">
+                {% for k in r.result.key_attributes %}<span class="badge badge-outline badge-xs">{{ k }}</span>{% endfor
+                %}
+            </div>{% endif %}
+            {% if r.result.glossary_terms %}
+            <div class="flex flex-wrap gap-1 mt-1">
+                {% for t in r.result.glossary_terms %}<span class="badge badge-ghost badge-xs">{{ t }}</span>{% endfor
+                %}
+            </div>{% endif %}
+            {% endif %}
+            {% else %}
+            <p class="text-xs opacity-60 mt-2">No proposal — agent failed on the last run (audit-logged).</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<h2 class="text-lg font-semibold mt-8 mb-2">Columns
+    <span class="text-xs opacity-50 font-normal">{{ asset.columns | length }}</span>
+</h2>
+<div class="card bg-base-100 shadow">
+    <div class="card-body p-0">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>PII</th>
+                    <th>Key</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in asset.columns %}
+                <tr>
+                    <td class="opacity-40 text-xs">{{ c.ordinal }}</td>
+                    <td class="font-mono text-xs">{{ c.name }}
+                        {% if c.raw_comment %}<span class="opacity-50" title="{{ c.raw_comment }}">💬</span>{% endif %}
+                    </td>
+                    <td class="text-xs opacity-70">{{ c.data_type }}</td>
+                    <td>{% if c.is_pii %}<span class="badge badge-error badge-xs">{{ c.pii_type or 'PII' }}</span>{%
+                        endif %}</td>
+                    <td>{% if c.is_key_attribute %}<span class="badge badge-info badge-xs">key</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if gs in ('pending', 'pending_review', 'auto_accepted') %}
+<h2 class="text-lg font-semibold mt-8 mb-2">Steward review
+    <span class="text-xs opacity-50 font-normal">acting as {{ user.name }}</span>
+</h2>
+<form method="post" action="/assets/{{ asset.id }}/review" class="card bg-base-100 shadow">
+    <div class="card-body gap-3">
+        <div class="grid md:grid-cols-2 gap-3">
+            <div class="md:col-span-2">
+                <label class="label text-xs">Description (prefilled from the agent proposal)</label>
+                <textarea name="description" rows="2"
+                    class="textarea textarea-bordered w-full text-sm">{{ prefill.description }}</textarea>
+            </div>
+            <div>
+                <label class="label text-xs">Business domain</label>
+                <input name="business_domain" value="{{ prefill.domain }}" class="input input-bordered input-sm w-full">
+            </div>
+            <div>
+                <label class="label text-xs">Sensitivity</label>
+                <select name="sensitivity" class="select select-bordered select-sm w-full">
+                    <option value=""></option>
+                    {% for s in ['public', 'internal', 'confidential', 'restricted'] %}
+                    <option value="{{ s }}" {% if prefill.sensitivity==s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="label text-xs">Owner</label>
+                <select name="owner_email" class="select select-bordered select-sm w-full">
+                    <option value=""></option>
+                    {% for p in people %}
+                    <option value="{{ p.email }}" {% if prefill.owner_email==p.email %}selected{% endif %}>
+                        {{ p.full_name }} — {{ p.team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="label text-xs">Comment (recorded in the audit log)</label>
+                <input name="comment" class="input input-bordered input-sm w-full" placeholder="why this decision">
+            </div>
+        </div>
+        <div class="card-actions justify-end">
+            <button name="action" value="rejected" class="btn btn-error btn-outline btn-sm">Reject</button>
+            <button name="action" value="edited" class="btn btn-primary btn-sm">Save edits &amp; approve</button>
+            <button name="action" value="approved" class="btn btn-success btn-sm">Approve as proposed</button>
+        </div>
+    </div>
+</form>
+{% else %}
+<div class="mt-8 card bg-base-100 shadow">
+    <div class="card-body py-4 flex-row items-center justify-between flex-wrap gap-2">
+        <div class="text-sm">
+            {% if gs == 'approved' %}✅ Approved{% else %}⛔ Rejected{% endif %}
+            {% if reviewer %} by <span class="font-medium">{{ reviewer.name }}</span>{% endif %}
+            {% if asset.reviewed_at %}
+            <span class="opacity-60">· {{ asset.reviewed_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+            {% endif %}
+        </div>
+        <form method="post" action="/assets/{{ asset.id }}/reopen"
+            onsubmit="return confirm('Reopen this asset for review?')">
+            <button class="btn btn-ghost btn-sm">Reopen</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

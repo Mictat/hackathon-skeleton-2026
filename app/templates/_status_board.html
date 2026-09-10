@@ -1,18 +1,23 @@
 <div id="status-board" hx-get="/pages/status-board" hx-trigger="every 2s" hx-swap="outerHTML">
     <h2 class="text-lg font-semibold mb-2">Catalog status</h2>
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-        {% for label, key in [("Pending", "pending"), ("Auto-accepted", "auto_accepted"),
-        ("In review", "pending_review"), ("Approved", "approved"), ("Rejected", "rejected")] %}
-        <div class="card bg-base-100 shadow">
+        {% for label, key, href in [
+        ("Pending", "pending", "/review"),
+        ("Auto-accepted", "auto_accepted", "/review?status=auto_accepted"),
+        ("In review", "pending_review", "/review?status=pending_review"),
+        ("Approved", "approved", "/review?status=approved"),
+        ("Rejected", "rejected", "/review?status=rejected")] %}
+        <a href="{{ href }}" class="card bg-base-100 shadow hover:bg-base-200 transition-colors">
             <div class="card-body py-4">
                 <div class="text-3xl font-bold">{{ gov_counts.get(key, 0) }}</div>
                 <div class="text-sm opacity-70">{{ label }}</div>
             </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
     <div class="flex gap-2 flex-wrap mb-6">
-        {% for label, key in [("Discovered", "discovered"), ("Enriching", "enriching"), ("Enriched", "enriched")] %}
+        {% for label, key in [("Discovered", "discovered"), ("Enriching", "enriching"),
+        ("Enriched", "enriched")] %}
         <span class="badge badge-outline">{{ label }}: {{ pipe_counts.get(key, 0) }}</span>
         {% endfor %}
     </div>
@@ -45,22 +50,21 @@
                                  {% elif item.last.status == 'failed' %}badge-error
                                  {% else %}badge-warning{% endif %}">{{ item.last.status }}</span>
                             <span class="text-xs opacity-60 ml-1">
-                                +{{ item.last.stats.get('new', 0) }} new / {{ item.last.stats.get('assets_seen', 0) }}
-                                seen
+                                +{{ item.last.stats.get('new', 0) }} new ·
+                                {{ item.last.stats.get('enriched', 0) }} enriched ·
+                                {{ item.last.stats.get('auto_accepted', 0) }} auto
                             </span>
-                            {% else %}<span class="opacity-40">never</span>{% endif %}
                             {% if item.last.status == 'failed' and item.last.error %}
-                            <div class="text-xs text-error mt-1 max-w-[240px] truncate" title="{{ item.last.error }}">
-                                {{item.last.error}}
-                            </div>
+                            <div class="text-xs text-error mt-1 max-w-[240px] truncate" title="{{ item.last.error }}">{{
+                                item.last.error }}</div>
                             {% endif %}
+                            {% else %}<span class="opacity-40">never</span>{% endif %}
                         </td>
                         <td>
                             {% if item.s.status != 'mock' %}
                             <button class="btn btn-primary btn-sm" hx-post="/pages/sources/{{ item.s.id }}/scan"
                                 hx-target="#status-board" hx-swap="outerHTML" hx-disabled-elt="this">
-                                Scan
-                            </button>
+                                Scan</button>
                             {% endif %}
                         </td>
                     </tr>
@@ -69,6 +73,8 @@
             </table>
         </div>
     </div>
-    <div class="text-xs opacity-50 mt-2">Auto-accept threshold: {{ "%.0f%%" | format(threshold * 100) }} confidence
-    </div>
+    {% if is_htmx %}
+    <span id="navbar-review-badge" hx-swap-oob="true" class="badge badge-error badge-sm">{{
+        gov_counts.get('pending_review', 0) }}</span>
+    {% endif %}
 </div>

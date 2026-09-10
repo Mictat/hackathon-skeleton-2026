@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Audit — Cairn{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <h1 class="text-xl font-bold">Audit log
+        <span class="text-xs opacity-50 font-normal">append-only · every agent and human action</span>
+    </h1>
+    <form method="get" action="/audit">
+        <select name="filter" class="select select-bordered select-sm" onchange="this.form.submit()">
+            {% for pat, label in FILTERS %}
+            <option value="{{ pat }}" {% if active_filter==pat %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+<div class="card bg-base-100 shadow">
+    <div class="card-body p-0">
+        <table class="table table-sm table-zebra">
+            <thead>
+                <tr>
+                    <th>When (UTC)</th>
+                    <th>Actor</th>
+                    <th>Event</th>
+                    <th>Entity</th>
+                    <th>Payload</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in events %}
+                <tr>
+                    <td class="text-xs whitespace-nowrap opacity-70">{{ e.occurred_at.strftime('%m-%d %H:%M:%S') }}</td>
+                    <td class="text-xs">
+                        <span class="badge badge-xs {% if e.actor_type.value == 'agent' %}badge-accent
+                                       {% elif e.actor_type.value == 'human' %}badge-success
+                                       {% else %}badge-ghost{% endif %}">{{ e.actor_type.value }}</span>
+                        <span class="font-mono">{{ e.actor }}</span>
+                    </td>
+                    <td><span class="badge badge-sm badge-outline">{{ e.event_type }}</span></td>
+                    <td class="text-xs">
+                        {% if e.entity_type == 'asset' and e.entity_id in assets %}
+                        <a class="link" href="/assets/{{ e.entity_id }}">{{ assets[e.entity_id].full_path }}</a>
+                        {% else %}<span class="opacity-50">{{ e.entity_type or '' }} {{ e.entity_id or '' }}</span>{%
+                        endif %}
+                    </td>
+                    <td>
+                        {% if e.payload %}
+                        <details>
+                            <summary class="text-xs opacity-50 cursor-pointer">view</summary>
+                            <pre
+                                class="text-[10px] bg-base-200 p-2 rounded mt-1 overflow-x-auto max-w-lg">{{ e.payload | tojson }}</pre>
+                        </details>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="opacity-60 text-center py-8">No events.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="text-xs opacity-50 mt-2">latest {{ events | length }} events</div>
+{% endblock %}
