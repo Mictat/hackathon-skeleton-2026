@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Catalog — Cairn{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <h1 class="text-xl font-bold">Catalog</h1>
+    <div class="text-xs opacity-60">{{ total }} assets · {{ with_pii }} with PII ·
+        {{ unowned_n }} unowned</div>
+</div>
+
+<div class="flex gap-2 flex-wrap mb-4">
+    <a class="badge badge-outline gap-1 hover:badge-primary"
+        href="/catalog?q=customer&pii_only=on&dept={{ 'Retail Banking' | urlencode }}">🔒 Customer PII · Retail
+        Banking</a>
+    <a class="badge badge-outline hover:badge-primary" href="/catalog?sensitivity=restricted">⛔ Restricted</a>
+    <a class="badge badge-outline hover:badge-primary" href="/catalog?unowned=on">❓ Unowned</a>
+    <a class="badge badge-outline hover:badge-primary" href="/catalog?status=pending_review">⏳ Awaiting review</a>
+</div>
+
+<form method="get" action="/catalog" class="card bg-base-100 shadow mb-4">
+    <div class="card-body py-4 grid md:grid-cols-4 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="label text-xs">Search (names, descriptions, columns)</label>
+            <input name="q" value="{{ filters.q }}" class="input input-bordered input-sm w-full"
+                placeholder="e.g. customer, KYC, balance…">
+        </div>
+        <div>
+            <label class="label text-xs">Domain</label>
+            <select name="domain" class="select select-bordered select-sm w-full">
+                <option value=""></option>
+                {% for d in domains %}<option value="{{ d }}" {% if filters.domain==d %}selected{% endif %}>{{ d }}
+                </option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="label text-xs">Sensitivity</label>
+            <select name="sensitivity" class="select select-bordered select-sm w-full">
+                <option value=""></option>
+                {% for s in sensitivities %}<option value="{{ s }}" {% if filters.sensitivity==s %}selected{% endif %}>
+                    {{ s }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="label text-xs">Owner department</label>
+            <select name="dept" class="select select-bordered select-sm w-full">
+                <option value=""></option>
+                {% for d in departments %}<option value="{{ d }}" {% if filters.dept==d %}selected{% endif %}>{{ d }}
+                </option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="label text-xs">Source</label>
+            <select name="source_id" class="select select-bordered select-sm w-full">
+                <option value="0"></option>
+                {% for s in sources %}<option value="{{ s.id }}" {% if filters.source_id==s.id %}selected{% endif %}>{{
+                    s.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="label text-xs">Governance status</label>
+            <select name="status" class="select select-bordered select-sm w-full">
+                <option value=""></option>
+                {% for g in gov_statuses %}<option value="{{ g }}" {% if filters.status==g %}selected{% endif %}>{{
+                    g.replace('_', ' ') }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="flex items-center gap-4">
+            <label class="label cursor-pointer gap-2 text-xs">
+                <input type="checkbox" name="pii_only" class="checkbox checkbox-xs" {% if filters.pii_only %}checked{%
+                    endif %}> PII only
+            </label>
+            <label class="label cursor-pointer gap-2 text-xs">
+                <input type="checkbox" name="unowned" class="checkbox checkbox-xs" {% if filters.unowned %}checked{%
+                    endif %}> unowned
+            </label>
+        </div>
+        <div class="flex gap-2 md:col-span-4 justify-end">
+            <a href="/catalog" class="btn btn-ghost btn-sm">Clear</a>
+            <button class="btn btn-primary btn-sm">Apply filters</button>
+        </div>
+    </div>
+</form>
+
+<div class="card bg-base-100 shadow">
+    <div class="card-body p-0">
+        <table class="table table-sm table-zebra">
+            <thead>
+                <tr>
+                    <th>Asset</th>
+                    <th>Source</th>
+                    <th>Domain</th>
+                    <th>Sensitivity</th>
+                    <th>Owner</th>
+                    <th>PII</th>
+                    <th>Conf</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                {% set a = row.a %}
+                <tr class="hover">
+                    <td><a class="link link-primary font-mono text-xs" href="/assets/{{ a.id }}">{{ a.full_path }}</a>
+                    </td>
+                    <td class="text-xs opacity-70">{{ a.source.name }}</td>
+                    <td class="text-xs">{{ a.business_domain or '—' }}</td>
+                    <td>{% if a.sensitivity %}
+                        <span class="badge badge-xs {% if a.sensitivity.value in ('restricted','confidential') %}badge-error
+                                {% elif a.sensitivity.value == 'internal' %}badge-warning
+                                {% else %}badge-ghost{% endif %}">{{ a.sensitivity.value }}</span>
+                        {% else %}<span class="opacity-30 text-xs">—</span>{% endif %}
+                    </td>
+                    <td class="text-xs">{% if a.owner %}{{ a.owner.full_name }}{% else %}<span
+                            class="opacity-40">unowned</span>{% endif %}</td>
+                    <td>{% if row.pii_count %}<span class="badge badge-error badge-sm">{{ row.pii_count }}</span>
+                        {% else %}<span class="opacity-30">—</span>{% endif %}</td>
+                    <td class="text-xs">{% if a.overall_confidence is not none %}{{ "%.2f" |
+                        format(a.overall_confidence) }}{% else %}—{% endif %}</td>
+                    <td><span class="badge badge-xs {% if a.governance_status.value == 'approved' %}badge-success
+                                   {% elif a.governance_status.value == 'rejected' %}badge-error
+                                   {% elif a.governance_status.value == 'auto_accepted' %}badge-info
+                                   {% else %}badge-warning{% endif %}">
+                            {{ a.governance_status.value.replace('_', ' ') }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="opacity-60 text-center py-8">No assets match —
+                        try clearing filters, or run a scan.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="text-xs opacity-50 mt-2">{{ rows | length }} results</div>
+{% endblock %}

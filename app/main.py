@@ -21,12 +21,14 @@ def create_app() -> FastAPI:
     from app.api.pages import router as pages_router
     from app.api.sources import router as sources_router
     from app.api.governance import router as governance_router
+    from app.api.catalog import router as catalog_router
 
     app = FastAPI(title=get_settings().app_name, lifespan=lifespan)
     app.include_router(health_router)
     app.include_router(pages_router)
     app.include_router(sources_router)
     app.include_router(governance_router)
+    app.include_router(catalog_router)
     app.mount("/static", StaticFiles(directory=BASE_DIR / "app" / "static"), name="static")
     return app
 

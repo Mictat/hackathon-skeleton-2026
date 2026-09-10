@@ -18,6 +18,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, enum_col, ts_col
 from .enums import AssetType, Environment, GovernanceStatus, PipelineStatus, Sensitivity, SourceType
+from .org import OrgPerson
 
 
 class DataSource(Base):
@@ -79,6 +80,9 @@ class Asset(Base):
         back_populates="asset", cascade="all, delete-orphan", order_by="AssetColumn.ordinal"
     )
     reviews: Mapped[list["Review"]] = relationship(back_populates="asset", cascade="all, delete-orphan")
+    raw_definition: Mapped[str | None] = mapped_column(Text, nullable=True)  # view SQL etc.
+
+    owner: Mapped["OrgPerson | None"] = relationship()  # single FK -> org_people
 
     # ---- Discovered raw metadata (agent INPUT — distinct from curated fields) ----
     raw_comment: Mapped[str | None] = mapped_column(Text, nullable=True)  # e.g. PG table comment

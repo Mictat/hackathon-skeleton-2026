@@ -1,4 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
+{% if flash %}<div class="alert alert-info mb-4 text-sm">{{ flash }}</div>{% endif %}
 {% include "_board.html" %}
 {% endblock %}

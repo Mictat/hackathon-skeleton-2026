@@ -1,0 +1,91 @@
+<div id="run-detail" {% if run.status in ('queued', 'running' ) %} hx-get="/pages/runs/{{ run.id }}"
+    hx-trigger="every 1s" hx-swap="outerHTML" {% endif %}>
+    <div class="flex items-center gap-3 mb-4 flex-wrap">
+        <span class="badge {% if run.status == 'completed' %}badge-success
+                       {% elif run.status == 'failed' %}badge-error
+                       {% else %}badge-warning{% endif %} badge-lg">{{ run.status }}</span>
+        <span class="text-xs opacity-60">started {{ run.started_at.strftime('%H:%M:%S') }} UTC
+            {% if run.finished_at %}· finished {{ run.finished_at.strftime('%H:%M:%S') }}{% endif %}</span>
+        {% if enriching %}
+        <span class="loading loading-dots loading-sm text-primary"></span>
+        <span class="text-xs">{{ enriching | length }} asset(s) in agent pipeline</span>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        {% for key, label in [("assets_seen", "Assets seen"), ("new", "New"), ("columns", "Columns"),
+        ("enriched", "Enriched"), ("enrich_failed", "Agent failures"),
+        ("llm_calls", "LLM calls"), ("cache_hits", "Cache hits"),
+        ("auto_accepted", "Auto-accepted"), ("pending_review", "Queued for review"),
+        ("lineage_edges", "Lineage edges")] %}
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-3 px-4">
+                <div class="text-2xl font-bold">{{ run.stats.get(key, 0) }}</div>
+                <div class="text-xs opacity-70">{{ label }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if agent_rows %}
+    <div class="flex gap-2 flex-wrap mb-6">
+        {% for a in agent_rows %}
+        <span class="badge badge-outline">🤖 {{ a.name }}: {{ a.calls }} calls
+            {% if a.avg_conf is not none %}· avg conf {{ "%.2f" | format(a.avg_conf) }}{% endif %}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if enriching %}
+    <div class="card bg-base-100 shadow mb-6">
+        <div class="card-body py-3">
+            <div class="text-xs opacity-60 mb-1">agents currently working on:</div>
+            <div class="flex flex-wrap gap-1">
+                {% for a in enriching %}<span class="badge badge-primary badge-sm font-mono">{{ a.full_path }}</span>{%
+                endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <h2 class="text-lg font-semibold mb-2">Run event stream
+        <span class="text-xs opacity-50 font-normal">from the append-only audit log</span>
+    </h2>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-0">
+            <table class="table table-sm table-zebra">
+                <thead>
+                    <tr>
+                        <th>When</th>
+                        <th>Actor</th>
+                        <th>Event</th>
+                        <th>Asset</th>
+                        <th>Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in events %}
+                    <tr>
+                        <td class="text-xs opacity-60 whitespace-nowrap">{{ e.occurred_at.strftime('%H:%M:%S') }}</td>
+                        <td class="text-xs"><span class="badge badge-xs {% if e.actor_type.value == 'agent' %}badge-accent
+                                  {% elif e.actor_type.value == 'human' %}badge-success
+                                  {% else %}badge-ghost{% endif %}">{{ e.actor }}</span></td>
+                        <td><span class="badge badge-outline badge-xs">{{ e.event_type }}</span></td>
+                        <td class="text-xs font-mono">{% if e.entity_type == 'asset' and e.entity_id in assets %}
+                            <a class="link" href="/assets/{{ e.entity_id }}">{{ assets[e.entity_id].full_path }}</a>
+                            {% else %}<span class="opacity-40">{{ e.entity_type or '' }}</span>{% endif %}
+                        </td>
+                        <td class="text-xs opacity-70">
+                            {% if e.payload.get('confidence') is not none %}conf {{ "%.2f" |
+                            format(e.payload.get('confidence', 0) or 0) }}{% endif %}
+                            {% if e.payload.get('from_cache') %}· cached{% endif %}
+                        </td>
+                    </tr>
+                    {% else %}<tr>
+                        <td colspan="5" class="opacity-60 text-center py-6">No events yet.</td>
+                    </tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

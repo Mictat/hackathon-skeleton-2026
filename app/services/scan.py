@@ -13,6 +13,7 @@ from app.db import SessionLocal
 from app.models import ActorType, Asset, AssetColumn, DataSource, PipelineStatus, ScanRun
 from app.services.audit import log_event
 from app.services.enrich import enrich_discovered_assets
+from app.services.lineage import detect_lineage
 from app.services.triage import apply_triage
 
 
@@ -105,6 +106,20 @@ def _execute_scan(run_id: int) -> None:
                     run_id=run.id,
                     payload={"error": str(e)[:300]},
                 )
+            # --- lineage detection ---
+            try:
+                stats.update({"lineage_edges": detect_lineage(db, run)["new_edges"]})
+            except Exception as e:
+                log_event(
+                    db,
+                    actor_type=ActorType.system,
+                    actor="scan-service",
+                    event_type="lineage_error",
+                    entity_type="data_source",
+                    entity_id=source.id,
+                    run_id=run.id,
+                    payload={"error": str(e)[:300]},
+                )
             run.status = "completed"
             log_event(
                 db,
@@ -182,6 +197,7 @@ def _upsert_asset(db: Session, run: ScanRun, source: DataSource, raw) -> tuple[A
         # whether a changed asset needs re-review is a human decision.
     asset.raw_comment = raw.comment
     asset.row_count = raw.row_count
+    asset.raw_definition = raw.definition
     _sync_columns(db, asset, raw.columns)
     return asset, created
 

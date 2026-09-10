@@ -24,6 +24,7 @@ class RawAsset:
     namespace: str | None = None
     comment: str | None = None
     row_count: int | None = None
+    definition: str | None = None
     columns: list[RawColumn] = field(default_factory=list)
 
 

@@ -78,6 +78,40 @@
     </div>
 </div>
 
+{% if upstream or downstream %}
+<h2 class="text-lg font-semibold mt-8 mb-2">Lineage
+    <span class="text-xs opacity-50 font-normal">inferred from metadata · human confirmation on the roadmap</span>
+</h2>
+<div class="grid md:grid-cols-2 gap-4">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h3 class="card-title text-sm">Derives from ({{ upstream | length }})</h3>
+            {% for u in upstream %}
+            <div class="text-xs flex items-center gap-2 flex-wrap py-0.5">
+                <a class="link link-primary font-mono" href="/assets/{{ u.asset.id }}">{{ u.asset.full_path }}</a>
+                <span class="badge badge-ghost badge-xs">{{ u.edge.edge_type }}</span>
+                <span class="badge badge-outline badge-xs">{{ u.edge.detected_by }}
+                    {% if u.edge.confidence %} {{ "%.2f" | format(u.edge.confidence) }}{% endif %}</span>
+            </div>
+            {% else %}<p class="text-xs opacity-50">No upstream detected.</p>{% endfor %}
+        </div>
+    </div>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h3 class="card-title text-sm">Feeds ({{ downstream | length }})</h3>
+            {% for d in downstream %}
+            <div class="text-xs flex items-center gap-2 flex-wrap py-0.5">
+                <a class="link link-primary font-mono" href="/assets/{{ d.asset.id }}">{{ d.asset.full_path }}</a>
+                <span class="badge badge-ghost badge-xs">{{ d.edge.edge_type }}</span>
+                <span class="badge badge-outline badge-xs">{{ d.edge.detected_by }}
+                    {% if d.edge.confidence %} {{ "%.2f" | format(d.edge.confidence) }}{% endif %}</span>
+            </div>
+            {% else %}<p class="text-xs opacity-50">Nothing downstream detected.</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <h2 class="text-lg font-semibold mt-8 mb-2">Agent proposals
     <span class="text-xs opacity-50 font-normal">latest per agent · every proposal recorded with provenance</span>
 </h2>

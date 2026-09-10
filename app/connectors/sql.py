@@ -65,6 +65,12 @@ class SQLConnector(Connector):
         comment = None
         if atype == AssetType.table:  # view comments vary by dialect — skip
             comment = (insp.get_table_comment(name, schema=schema) or {}).get("text")
+        definition = None
+        if atype == AssetType.view:
+            try:
+                definition = insp.get_view_definition(name, schema=schema)
+            except Exception:
+                definition = None
         return RawAsset(
             name=name,
             full_path=f"{schema}.{name}",
@@ -72,6 +78,7 @@ class SQLConnector(Connector):
             namespace=schema,
             comment=comment,
             row_count=self._count(schema, name),
+            definition=definition,
             columns=[
                 RawColumn(
                     name=c["name"],

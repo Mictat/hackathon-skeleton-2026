@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.api.templating import board_context, render
 from app.db import get_db
 from app.models import ActorType, Asset, DataSource, GovernanceStatus, OrgPerson, Review, User
+from app.models.catalog import LineageEdge
 from app.services.audit import log_event
 from app.services.proposals import latest_results
 from app.services.review import ReviewError, reopen_asset, submit_review
@@ -100,6 +101,14 @@ def asset_detail(request: Request, asset_id: int, db: Session = Depends(get_db))
         "sensitivity": (asset.sensitivity.value if asset.sensitivity else cls.get("asset_sensitivity") or ""),
         "owner_email": (owner.email if owner else top_owner.get("email") or ""),
     }
+    upstream = [
+        {"edge": e, "asset": db.get(Asset, e.source_asset_id)}
+        for e in db.scalars(select(LineageEdge).where(LineageEdge.target_asset_id == asset_id))
+    ]
+    downstream = [
+        {"edge": e, "asset": db.get(Asset, e.target_asset_id)}
+        for e in db.scalars(select(LineageEdge).where(LineageEdge.source_asset_id == asset_id))
+    ]
     return render(
         request,
         db,
@@ -114,6 +123,8 @@ def asset_detail(request: Request, asset_id: int, db: Session = Depends(get_db))
         reviews=reviews,
         prefill=prefill,
         threshold=get_confidence_threshold(db),
+        upstream=upstream,
+        downstream=downstream,
     )
 
 

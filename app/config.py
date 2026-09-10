@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
     llm_api_key: str = ""
     llm_cache_dir: str = ".llm_cache"
-    scan_pacing_ms: int = 0  # demo day: set 150 → assets visibly stream in
+    scan_pacing_ms: int = 150  # demo day: set 150 → assets visibly stream in
     sample_db_password: str = "bank_dev"  # dev fallback; prod sets real env var
     llm_base_url: str = "https://api.openai.com/v1"  # any OpenAI-compatible provider
     llm_offline: bool = False  # cache-only mode (demo safety)

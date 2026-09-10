@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Register source — Cairn{% endblock %}
+{% block content %}
+<h1 class="text-xl font-bold mb-4">Register a data source</h1>
+{% if flash %}<div class="alert alert-warning mb-4 text-sm">{{ flash }}</div>{% endif %}
+<form method="post" action="/pages/sources" class="card bg-base-100 shadow max-w-2xl">
+    <div class="card-body gap-3">
+        <div class="grid md:grid-cols-2 gap-3">
+            <div>
+                <label class="label text-xs">Name</label>
+                <input name="name" required class="input input-bordered input-sm w-full"
+                    placeholder="e.g. Wholesale Payments (Snowflake)">
+            </div>
+            <div>
+                <label class="label text-xs">Type</label>
+                <select name="source_type" id="stype" class="select select-bordered select-sm w-full"
+                    onchange="toggleConn()">
+                    <option value="postgres">PostgreSQL — live connector</option>
+                    <option value="mysql">MySQL — live connector</option>
+                    <option value="file">File share — live connector</option>
+                    <option value="snowflake">Snowflake — roadmap</option>
+                    <option value="teradata">Teradata — roadmap</option>
+                    <option value="mainframe">Mainframe (DB2) — roadmap</option>
+                    <option value="hadoop">Hadoop — roadmap</option>
+                </select>
+            </div>
+            <div>
+                <label class="label text-xs">Environment</label>
+                <select name="environment" class="select select-bordered select-sm w-full">
+                    {% for e in ['production', 'analytics', 'development', 'sandbox'] %}
+                    <option value="{{ e }}">{{ e }}</option>{% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div id="conn-pg" class="grid md:grid-cols-2 gap-3 border-t border-base-200 pt-3">
+            <div><label class="label text-xs">Host</label>
+                <input name="host" value="localhost" class="input input-bordered input-sm w-full">
+            </div>
+            <div><label class="label text-xs">Port</label>
+                <input name="port" value="5433" class="input input-bordered input-sm w-full">
+            </div>
+            <div><label class="label text-xs">Database</label>
+                <input name="database" class="input input-bordered input-sm w-full" placeholder="bank_sample">
+            </div>
+            <div><label class="label text-xs">User</label>
+                <input name="user" value="bank" class="input input-bordered input-sm w-full">
+            </div>
+            <div class="md:col-span-2"><label class="label text-xs">Password env var name
+                    <span class="opacity-50">(credentials never enter the catalog)</span></label>
+                <input name="password_env" value="BANK_SAMPLE_PASSWORD" class="input input-bordered input-sm w-full">
+            </div>
+        </div>
+
+        <div id="conn-file" class="border-t border-base-200 pt-3 hidden">
+            <label class="label text-xs">Root path (relative to project)</label>
+            <input name="root" value="data/file_share" class="input input-bordered input-sm w-full">
+        </div>
+
+        <div id="conn-mock" class="border-t border-base-200 pt-3 hidden">
+            <div class="text-xs opacity-70">Roadmap connector — the environment will be registered and
+                tracked in the catalog (coverage visibility), but not scanned yet.</div>
+        </div>
+
+        <div class="card-actions justify-end">
+            <a href="/" class="btn btn-ghost btn-sm">Cancel</a>
+            <button class="btn btn-primary btn-sm">Register</button>
+        </div>
+    </div>
+</form>
+<script>
+    function toggleConn() {
+        const t = document.getElementById("stype").value;
+        document.getElementById("conn-pg").classList.toggle("hidden", t !== "postgres" && t !== "mysql");
+        document.getElementById("conn-file").classList.toggle("hidden", t !== "file");
+        document.getElementById("conn-mock").classList.toggle("hidden",
+            !["snowflake", "teradata", "mainframe", "hadoop"].includes(t));
+    }
+</script>
+{% endblock %}

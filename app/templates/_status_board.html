@@ -21,6 +21,10 @@
         <span class="badge badge-outline">{{ label }}: {{ pipe_counts.get(key, 0) }}</span>
         {% endfor %}
     </div>
+    <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-semibold">Data sources</h2>
+        <a href="/sources/new" class="btn btn-primary btn-sm">＋ Register source</a>
+    </div>
     <h2 class="text-lg font-semibold mb-2">Data sources</h2>
     <div class="card bg-base-100 shadow">
         <div class="card-body p-0">
@@ -43,12 +47,15 @@
                         <td>{{ item.s.source_type.value }}</td>
                         <td>{{ item.s.environment.value }}</td>
                         <td><span class="badge badge-ghost">{{ item.s.status }}</span></td>
-                        <td>{{ item.s.assets | length }}</td>
+                        <td><a href="/catalog?source_id={{ item.s.id }}" class="link">{{ item.s.assets | length }}</a>
+                        </td>
                         <td>
                             {% if item.last %}
-                            <span class="badge {% if item.last.status == 'completed' %}badge-success
-                                 {% elif item.last.status == 'failed' %}badge-error
-                                 {% else %}badge-warning{% endif %}">{{ item.last.status }}</span>
+                            <a href="/runs/{{ item.last.id }}">
+                                <span class="badge {% if item.last.status == 'completed' %}badge-success
+                                   {% elif item.last.status == 'failed' %}badge-error
+                                   {% else %}badge-warning{% endif %}">{{ item.last.status }}</span>
+                            </a>
                             <span class="text-xs opacity-60 ml-1">
                                 +{{ item.last.stats.get('new', 0) }} new ·
                                 {{ item.last.stats.get('enriched', 0) }} enriched ·
