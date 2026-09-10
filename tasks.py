@@ -77,6 +77,16 @@ def cmd_reset():
     cmd_register()
 
 
+def cmd_prewarm():
+    cmd_init()
+    cmd_register()
+    py("-m", "scripts.prewarm_cache")
+
+
+def cmd_doctor():
+    py("-m", "scripts.doctor")
+
+
 # def cmd_requirements():
 #     sh("uv", "export", "--all-groups", "--no-hashes", "-o", "requirements.txt")
 
@@ -97,6 +107,8 @@ COMMANDS = {
     "register": (cmd_register, "register YAML sources + org directory into Cairn (idempotent)"),
     "demo": (cmd_demo, "full rebuild: generate → init → register"),
     "reset": (cmd_reset, "catalog-only reset: init + register (never touches ground truth)"),
+    "prewarm": (cmd_prewarm, "reset + full live run; fills the LLM cache (needs internet + key)"),
+    "doctor": (cmd_doctor, "demo-day readiness: db, yaml, llm mode, replay cache"),
     # "requirements": (cmd_requirements, "regenerate requirements.txt from uv.lock"),
     # "install-pip": (cmd_install_pip, "pip install from requirements.txt"),
 }

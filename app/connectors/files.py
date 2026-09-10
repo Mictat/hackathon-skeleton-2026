@@ -46,8 +46,8 @@ class FileConnector(Connector):
             full_path=str(rel).replace("\\", "/"),
             asset_type=AssetType.file,
             namespace=str(rel.parent).replace("\\", "/") if str(rel.parent) != "." else None,
-            comment=f"CSV file, {stat.st_size / 1024:.0f} KB, modified "
-            f"{datetime.fromtimestamp(stat.st_mtime):%Y-%m-%d}",
+            comment=f"CSV file, {stat.st_size / 1024:.0f} KB",
+            # f"{datetime.fromtimestamp(stat.st_mtime):%Y-%m-%d}",
             row_count=max(sum(1 for _ in path.open(encoding="utf-8")) - 1, 0),
             columns=[
                 RawColumn(
@@ -92,8 +92,8 @@ class FileConnector(Connector):
             full_path=str(rel).replace("\\", "/"),
             asset_type=AssetType.file,
             namespace=str(rel.parent).replace("\\", "/") if str(rel.parent) != "." else None,
-            comment=f"Parquet file, {stat.st_size / 1024:.0f} KB, modified "
-            f"{datetime.fromtimestamp(stat.st_mtime):%Y-%m-%d}",
+            comment=f"Parquet file, {stat.st_size / 1024:.0f} KB",
+            # f"{datetime.fromtimestamp(stat.st_mtime):%Y-%m-%d}",
             row_count=pf.metadata.num_rows,
             columns=[
                 RawColumn(name=f.name, data_type=str(f.type), nullable=bool(f.nullable), ordinal=i + 1)

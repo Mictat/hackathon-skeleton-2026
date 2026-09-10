@@ -12,6 +12,7 @@ from app.connectors import get_connector
 from app.db import SessionLocal
 from app.models import ActorType, Asset, AssetColumn, DataSource, PipelineStatus, ScanRun
 from app.services.audit import log_event
+from app.services.enrich import enrich_discovered_assets
 
 
 def start_scan(source_id: int, trigger: str = "manual") -> int:
@@ -71,6 +72,21 @@ def _execute_scan(run_id: int) -> None:
                 db.commit()
                 if pacing:
                     time.sleep(pacing)
+            # --- agent pipeline follows discovery in the same run ---
+            try:
+                enrich_stats = enrich_discovered_assets(db, run, get_settings().enrich_pacing_ms / 1000.0)
+                stats.update(enrich_stats)
+            except Exception as e:
+                log_event(
+                    db,
+                    actor_type=ActorType.system,
+                    actor="scan-service",
+                    event_type="enrichment_error",
+                    entity_type="data_source",
+                    entity_id=source.id,
+                    run_id=run.id,
+                    payload={"error": str(e)[:300]},
+                )
             run.status = "completed"
             log_event(
                 db,

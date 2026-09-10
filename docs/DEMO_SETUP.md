@@ -75,10 +75,29 @@ uv run tasks.py dev
   changed (and warn Governance 2 — `generate` rewrites their file).
 - Verify the cold state (§2 checklist), then rehearse the scan once.
 
+### Pre-warm & offline replay (day −5+)
+
+Once, with internet and a live key:
+
+```powershell
+uv run tasks.py prewarm     # reset + full live run, fills .llm_cache/
+uv run tasks.py doctor      # expect: replay ready — 57/57 prompts cached
+```
+
+Demo day (zero-internet safe): add `ATLAS_LLM_OFFLINE=1` to `.env`, restart,
+then the normal §3 reset + on-stage scan replays instantly from cache.
+Changed the YAML or the model? Prompts change → re-run prewarm (doctor will
+tell you). Rule: on demo day use `reset`, never `demo` (regenerating changes
+file metadata and invalidates prompts).
+
+
 ## 4. Show mode (.env)
 
 ```
 ATLAS_SCAN_PACING_MS=150
+ATLAS_SCAN_PACING_MS=150
+ATLAS_ENRICH_PACING_MS=600
+# restart after editing.
 ```
 
 - 150 ms/asset → the Retail Core scan visibly streams (~2.5 s for 16 assets)
@@ -130,6 +149,7 @@ SELECT obj_description('core.CDM_TBL_08'::regclass);                 -- NULL: no
 5. **The honesty moment** (Adminer, `bank_sample`): real tables, real types,
    comments on the obvious tables, `NULL` on `CDM_TBL_08` — *"the agents see
    only this. No labels. Ground truth lives outside the environment."*
+6. *"watch Enriching → Enriched as three agents fan out per asset — every proposal confidence-scored in `enrichment_results`, every step audit-logged."*
 
 ⏳ Sections that fill in as features land — this runbook is the demo-day
 source of truth:
@@ -163,3 +183,43 @@ source of truth:
 - [ ] Adminer creds known: `cairn`/`cairn_dev`, `bank`/`bank_dev`, server `db`
 - [ ] Run the §3 reset **30 minutes before** going on stage
 - [ ] Rehearse the scan once after reset
+
+
+
+
+
+
+
+
+
+
+
+
+
+**§5 known-good numbers** — post-scan warm state updates: Pipeline pills **Discovered 0 · Enriched 22**; governance cards unchanged (Pending 19 · In review 2 · Approved 1); add rows: `enrichment_results` = **57** (19×3 agents), audit = 2× scan_started/completed + 19 asset_discovered + 57 enrichment_proposed; run stats now include `enriched`, `llm_calls`, `cache_hits`.
+
+**§6** — add beat after the scan: 
+
+## Run order
+
+```powershell
+uv run tasks.py test                 # new agent tests pass
+# put your API key in .env, then:
+uv run tasks.py prewarm              # first live run: ~2-3 min, fills the cache
+uv run tasks.py doctor               # replay ready — 57/57
+uv run tasks.py dev
+```
+
+Or drive it from the UI: `reset` → `dev` → click **Scan** and watch the pipeline pills go Discovered → **Enriching** → Enriched, one asset at a time. Then verify quality in Adminer (cairn DB):
+
+```sql
+SELECT agent_name, count(*), round(avg(confidence)::numeric, 3) AS avg_conf,
+       count(*) FILTER (WHERE from_cache) AS cached
+FROM enrichment_results GROUP BY agent_name;
+
+SELECT full_path, round(overall_confidence::numeric, 2) AS conf
+FROM assets WHERE pipeline_status = 'enriched'
+ORDER BY overall_confidence DESC;
+```
+
+**What good looks like:** `customer_master` near the top (~0.9 — regex PII, strong owner, good description); `CDM_TBL_08` and `tmp_2023_q1_export` near the bottom (~0.5–0.6 — cryptic names, unknown owner) — exactly the assets that *should* land in the day −4 review queue. Spot-check the classification JSON for `core.CDM_TBL_08`: does the LLM catch that `fld_02`/`fld_03` look like name/DOB? That's the money shot for the pitch — **have the AI person review all 19 today** and tune prompts/rules where results are weak (they own `prompts.py` and the agent files; the contract doc is law).
