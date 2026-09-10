@@ -74,7 +74,9 @@ def _execute_scan(run_id: int) -> None:
                     time.sleep(pacing)
             # --- agent pipeline follows discovery in the same run ---
             try:
+                print(f"scan enrichment starting for ({run.id})...")
                 enrich_stats = enrich_discovered_assets(db, run, get_settings().enrich_pacing_ms / 1000.0)
+                print(f"scan enrichment finished! ({run.id}): {enrich_stats}")
                 stats.update(enrich_stats)
             except Exception as e:
                 log_event(
